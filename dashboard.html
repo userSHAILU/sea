@@ -1,0 +1,437 @@
+!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bug Tracker</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* Ensure modals appear above everything */
+    #bugModal, #editModal {
+      z-index: 50;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 text-gray-900 font-sans">
+  <div class="relative min-h-screen md:flex">
+    <aside id="sidebar" class="bg-gray-900 text-white w-64 p-4 fixed inset-y-0 left-0 z-40 transform transition-transform duration-300 ease-in-out">
+  <div class="flex items-center justify-between mb-8">
+    <h1 class="text-2xl font-bold">Bug Tracker</h1>
+    <!-- <button onclick="toggleSidebar()" class="p-1 rounded-full hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-white">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+      </svg>
+    </button> -->
+  </div>
+
+  <nav class="space-y-2">
+    <!-- Dashboard -->
+    <a href="#" class="flex items-center space-x-3 px-4 py-2 rounded-md hover:bg-gray-800 transition">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 6h18M3 14h18M3 18h18" />
+      </svg>
+      <span>Dashboard</span>
+    </a>
+
+    <!-- Bugs -->
+    <a href="#" class="flex items-center space-x-3 px-4 py-2 rounded-md hover:bg-gray-800 transition">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14h6m-3-3v6m-6 2a9 9 0 1118 0 9 9 0 01-18 0z" />
+      </svg>
+      <span>Bugs</span>
+    </a>
+
+    <!-- Users -->
+    <a href="#" class="flex items-center space-x-3 px-4 py-2 rounded-md hover:bg-gray-800 transition">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a4 4 0 00-4-4h-1M9 20H4v-2a4 4 0 014-4h1m4-6a4 4 0 110-8 4 4 0 010 8z" />
+      </svg>
+      <span>Users</span>
+    </a>
+
+    <!-- Projects -->
+    <a href="#" class="flex items-center space-x-3 px-4 py-2 rounded-md hover:bg-gray-800 transition">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L8.5 20h7l-1.25-3M12 15V3m0 0L9 6m3-3l3 3" />
+      </svg>
+      <span>Projects</span>
+    </a>
+
+    <!-- Settings -->
+    <a href="#" class="flex items-center space-x-3 px-4 py-2 rounded-md hover:bg-gray-800 transition">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3M4 6h16M4 12h16M4 18h16" />
+      </svg>
+      <span>Settings</span>
+    </a>
+  </nav>
+</aside>
+
+
+    <main id="main-content" class="flex-1 p-6 overflow-auto transition-all duration-300 ease-in-out ml-64">
+        <button onclick="toggleSidebar()" class="p-1 rounded-full hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-white">
+  <svg id="toggleIcon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <!-- Default: left arrow -->
+    <path id="iconPath" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+  </svg>
+</button>
+      <div class="flex justify-between items-center mb-6">
+        <h2 class="text-xl font-semibold">Tickets</h2>
+        <div class="space-x-2">
+          <button class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" onclick="openModal()">+ Report Bug</button>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap gap-4 mb-6">
+        <input type="text" id="search" placeholder="Search tickets..." oninput="applyFilters()" class="border rounded px-4 py-2 w-full sm:w-1/4" />
+        <select id="statusFilter" onchange="applyFilters()" class="border rounded px-4 py-2 w-full sm:w-1/6 bg-white">
+          <option value="">All Statuses</option>
+          <option value="Open">Open</option>
+          <option value="In Progress">In Progress</option>
+          <option value="Resolved">Resolved</option>
+        </select>
+        <select id="severityFilter" onchange="applyFilters()" class="border rounded px-4 py-2 w-full sm:w-1/6 bg-white">
+          <option value="">All Severities</option>
+          <option value="Low">Low</option>
+          <option value="Medium">Medium</option>
+          <option value="High">High</option>
+          <option value="Critical">Critical</option>
+        </select>
+        <select id="assigneeFilter" onchange="applyFilters()" class="border rounded px-4 py-2 w-full sm:w-1/6 bg-white">
+          <option value="">All</option>
+        </select>
+        <button onclick="clearFilters()" class="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400">Clear Filters</button>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6 text-center text-white">
+        <div class="bg-blue-200 text-blue-900 p-4 rounded">Total<br><span class="text-2xl font-bold" id="totalCount">0</span></div>
+        <div class="bg-yellow-100 text-yellow-800 p-4 rounded">Open<br><span class="text-2xl font-bold" id="openCount">0</span></div>
+        <div class="bg-purple-100 text-purple-800 p-4 rounded">In Progress<br><span class="text-2xl font-bold" id="inProgressCount">0</span></div>
+        <div class="bg-green-100 text-green-800 p-4 rounded">Resolved<br><span class="text-2xl font-bold" id="resolvedCount">0</span></div>
+      </div>
+
+      <div id="ticketList" class="space-y-4"></div>
+    </main>
+  </div>
+
+  <div id="bugModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4">
+    <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
+      <h3 class="text-xl font-bold mb-6">Report Bug</h3>
+      <div class="space-y-4">
+          <div>
+              <label for="modalTitle" class="block text-sm font-medium text-gray-700">Title</label>
+              <input id="modalTitle" type="text" class="mt-1 w-full border border-gray-300 p-2 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" />
+          </div>
+          <div>
+              <label for="modalDesc" class="block text-sm font-medium text-gray-700">Description</label>
+              <textarea id="modalDesc" rows="4" class="mt-1 w-full border border-gray-300 p-2 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"></textarea>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+              <div>
+                  <label for="modalStatus" class="block text-sm font-medium text-gray-700">Status</label>
+                  <select id="modalStatus" class="mt-1 w-full border border-gray-300 p-2 rounded-md shadow-sm bg-white focus:ring-blue-500 focus:border-blue-500">
+                      <option>Open</option>
+                      <option>In Progress</option>
+                      <option>Resolved</option>
+                  </select>
+              </div>
+              <div>
+                  <label for="modalSeverity" class="block text-sm font-medium text-gray-700">Severity</label>
+                  <select id="modalSeverity" class="mt-1 w-full border border-gray-300 p-2 rounded-md shadow-sm bg-white focus:ring-blue-500 focus:border-blue-500">
+                      <option>Low</option>
+                      <option>Medium</option>
+                      <option>High</option>
+                      <option>Critical</option>
+                  </select>
+              </div>
+          </div>
+          <div>
+              <label for="modalAssignee" class="block text-sm font-medium text-gray-700">Assignee</label>
+              <input id="modalAssignee" type="text" placeholder="Enter assignee name or leave blank" class="mt-1 w-full border border-gray-300 p-2 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" />
+          </div>
+      </div>
+      <div class="flex justify-end space-x-3 mt-8">
+        <button onclick="closeModal()" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">Cancel</button>
+        <button onclick="addBug()" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">Submit Bug Report</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center p-4">
+    <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
+      <h3 class="text-xl font-bold mb-6">Edit Ticket</h3>
+      <input type="hidden" id="editTicketId" />
+      <div class="space-y-4">
+        <div>
+          <label for="editModalTitle" class="block text-sm font-medium text-gray-700">Title</label>
+          <input id="editModalTitle" type="text" class="mt-1 w-full border border-gray-300 p-2 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" />
+        </div>
+        <div>
+          <label for="editModalDesc" class="block text-sm font-medium text-gray-700">Description</label>
+          <textarea id="editModalDesc" rows="4" class="mt-1 w-full border border-gray-300 p-2 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"></textarea>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label for="editModalStatus" class="block text-sm font-medium text-gray-700">Status</label>
+            <select id="editModalStatus" class="mt-1 w-full border border-gray-300 p-2 rounded-md shadow-sm bg-white focus:ring-blue-500 focus:border-blue-500">
+              <option>Open</option>
+              <option>In Progress</option>
+              <option>Resolved</option>
+            </select>
+          </div>
+          <div>
+            <label for="editModalSeverity" class="block text-sm font-medium text-gray-700">Severity</label>
+            <select id="editModalSeverity" class="mt-1 w-full border border-gray-300 p-2 rounded-md shadow-sm bg-white focus:ring-blue-500 focus:border-blue-500">
+              <option>Low</option>
+              <option>Medium</option>
+              <option>High</option>
+              <option>Critical</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label for="editModalAssignee" class="block text-sm font-medium text-gray-700">Assignee</label>
+          <input id="editModalAssignee" type="text" placeholder="Enter assignee name or leave blank" class="mt-1 w-full border border-gray-300 p-2 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500" />
+        </div>
+      </div>
+      <div class="flex justify-end space-x-3 mt-8">
+        <button onclick="closeEditModal()" class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">Cancel</button>
+        <button onclick="updateTicket()" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">Update Ticket</button>
+      </div>
+    </div>
+  </div>
+
+
+  <script>
+    let tickets = [
+      { id: 1, title: "Login page not working", severity: "High", status: "Open", description: "Users cannot log in using their credentials", assignee: "Jane Doe", created: "May 1, 2023" },
+      { id: 2, title: "Dashboard charts not rendering", severity: "Medium", status: "In Progress", description: "The analytics charts on the dashboard are not displaying properly", assignee: "John Smith", created: "May 2, 2023" },
+      { id: 3, title: "Incorrect calculation in reports", severity: "Critical", status: "Open", description: "The monthly report shows incorrect totals", assignee: "Unassigned", created: "May 3, 2023" }
+    ];
+
+    // NEW: Function to toggle sidebar visibility
+    function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const mainContent = document.getElementById('main-content');
+    const iconPath = document.getElementById('iconPath');
+
+    // Toggle sidebar visibility
+    sidebar.classList.toggle('-translate-x-full');
+
+    // Toggle main content margin
+    mainContent.classList.toggle('ml-64');
+
+    // Check sidebar visibility and update icon
+    const isHidden = sidebar.classList.contains('-translate-x-full');
+    
+    iconPath.setAttribute("d", isHidden
+      ? "M13 5l7 7-7 7M5 5l7 7-7 7"  // Right arrow
+      : "M11 19l-7-7 7-7m8 14l-7-7 7-7" // Left arrow
+    );
+  }
+
+    // Functions to control the "Report Bug" modal
+    function openModal() {
+        const modal = document.getElementById("bugModal");
+        modal.classList.remove("hidden");
+        modal.classList.add("flex");
+        document.getElementById("modalTitle").value = "";
+        document.getElementById("modalDesc").value = "";
+        document.getElementById("modalStatus").value = "Open";
+        document.getElementById("modalSeverity").value = "Medium";
+        document.getElementById("modalAssignee").value = "";
+        document.getElementById("modalTitle").focus();
+    }
+
+    function closeModal() {
+        const modal = document.getElementById("bugModal");
+        modal.classList.add("hidden");
+        modal.classList.remove("flex");
+    }
+
+    function addBug() {
+      const title = document.getElementById("modalTitle").value.trim();
+      const description = document.getElementById("modalDesc").value.trim();
+      const status = document.getElementById("modalStatus").value;
+      const severity = document.getElementById("modalSeverity").value;
+      const assignee = document.getElementById("modalAssignee").value.trim();
+
+      if (!title || !description) {
+        alert("Please enter both a title and a description for the bug.");
+        return;
+      }
+
+      const newTicket = {
+        id: tickets.length > 0 ? Math.max(...tickets.map(t => t.id)) + 1 : 1,
+        title,
+        severity,
+        status,
+        description,
+        assignee: assignee || "Unassigned",
+        created: new Date().toLocaleDateString()
+      };
+
+      tickets.push(newTicket);
+      closeModal();
+      updateAssigneeFilter();
+      applyFilters();
+    }
+    
+    // Functions to control the "Edit Ticket" modal
+    function openEditModal(id) {
+      const ticket = tickets.find(t => t.id === id);
+      if (!ticket) return;
+
+      document.getElementById("editTicketId").value = ticket.id;
+      document.getElementById("editModalTitle").value = ticket.title;
+      document.getElementById("editModalDesc").value = ticket.description;
+      document.getElementById("editModalStatus").value = ticket.status;
+      document.getElementById("editModalSeverity").value = ticket.severity;
+      document.getElementById("editModalAssignee").value = ticket.assignee;
+
+      const modal = document.getElementById("editModal");
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+    }
+
+    function closeEditModal() {
+      const modal = document.getElementById("editModal");
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+    }
+
+    function updateTicket() {
+      const ticketId = parseInt(document.getElementById("editTicketId").value, 10);
+      const ticket = tickets.find(t => t.id === ticketId);
+
+      if (ticket) {
+        const newTitle = document.getElementById("editModalTitle").value.trim();
+        const newDesc = document.getElementById("editModalDesc").value.trim();
+        if (!newTitle || !newDesc) {
+          alert("Title and Description cannot be empty.");
+          return;
+        }
+
+        ticket.title = newTitle;
+        ticket.description = newDesc;
+        ticket.status = document.getElementById("editModalStatus").value;
+        ticket.severity = document.getElementById("editModalSeverity").value;
+        ticket.assignee = document.getElementById("editModalAssignee").value.trim() || "Unassigned";
+
+        closeEditModal();
+        updateAssigneeFilter();
+        applyFilters();
+      }
+    }
+    
+    function updateAssigneeFilter() {
+      const assigneeFilter = document.getElementById("assigneeFilter");
+      const currentAssignee = assigneeFilter.value;
+      const assignees = [...new Set(tickets.map(ticket => ticket.assignee))];
+      assigneeFilter.innerHTML = '<option value="">All</option>'; 
+      assignees.sort().forEach(assignee => {
+        const option = document.createElement('option');
+        option.value = assignee;
+        option.textContent = assignee;
+        assigneeFilter.appendChild(option);
+      });
+      assigneeFilter.value = currentAssignee;
+    }
+
+    function renderTickets(data) {
+      const list = document.getElementById("ticketList");
+      list.innerHTML = "";
+
+      let counts = { total: 0, open: 0, inProgress: 0, resolved: 0 };
+      data.forEach(ticket => {
+        counts.total++;
+        if (ticket.status === "Open") counts.open++;
+        if (ticket.status === "In Progress") counts.inProgress++;
+        if (ticket.status === "Resolved") counts.resolved++;
+        
+        list.innerHTML += `
+          <div class="bg-white p-4 rounded shadow">
+            <div class="flex justify-between items-center flex-wrap gap-2">
+              <h3 class="font-semibold break-all">
+                ${ticket.title} <span class="text-sm px-2 py-0.5 rounded ${getSeverityColor(ticket.severity)}">${ticket.severity}</span>
+              </h3>
+              <div class="flex gap-2 items-center flex-shrink-0">
+                <span class="text-sm px-2 py-0.5 rounded ${getStatusColor(ticket.status)}">${ticket.status}</span>
+                <select onchange="updateStatus(${ticket.id}, this.value)" class="text-sm border rounded px-2 py-1 bg-white">
+                  <option value="Open" ${ticket.status === "Open" ? "selected" : ""}>Open</option>
+                  <option value="In Progress" ${ticket.status === "In Progress" ? "selected" : ""}>In Progress</option>
+                  <option value="Resolved" ${ticket.status === "Resolved" ? "selected" : ""}>Resolved</option>
+                </select>
+                <button onclick="openEditModal(${ticket.id})" class="text-blue-600 text-sm underline hover:text-blue-800">Edit Ticket</button>
+              </div>
+            </div>
+            <p class="text-sm text-gray-600 mt-2">${ticket.description}</p>
+            <p class="text-xs text-gray-500 mt-2">ID: #${ticket.id} &nbsp; Assignee: ${ticket.assignee} &nbsp; Created: ${ticket.created}</p>
+          </div>
+        `;
+      });
+
+      document.getElementById("totalCount").innerText = counts.total;
+      document.getElementById("openCount").innerText = counts.open;
+      document.getElementById("inProgressCount").innerText = counts.inProgress;
+      document.getElementById("resolvedCount").innerText = counts.resolved;
+    }
+
+    function getSeverityColor(severity) {
+      return {
+        Low: "bg-green-100 text-green-800",
+        Medium: "bg-blue-100 text-blue-800",
+        High: "bg-orange-100 text-orange-800",
+        Critical: "bg-red-100 text-red-800"
+      }[severity] || "bg-gray-100 text-gray-800";
+    }
+
+    function getStatusColor(status) {
+      return {
+        "Open": "bg-yellow-100 text-yellow-800",
+        "In Progress": "bg-purple-100 text-purple-800",
+        "Resolved": "bg-green-100 text-green-800"
+      }[status] || "bg-gray-100 text-gray-800";
+    }
+
+    function applyFilters() {
+      const search = document.getElementById("search").value.toLowerCase();
+      const status = document.getElementById("statusFilter").value;
+      const severity = document.getElementById("severityFilter").value;
+      const assignee = document.getElementById("assigneeFilter").value;
+
+      const filtered = tickets.filter(ticket => {
+        return (
+          (ticket.title.toLowerCase().includes(search) || ticket.description.toLowerCase().includes(search)) &&
+          (status === "" || ticket.status === status) &&
+          (severity === "" || ticket.severity === severity) &&
+          (assignee === "" || ticket.assignee === assignee)
+        );
+      });
+
+      renderTickets(filtered);
+    }
+
+    function clearFilters() {
+      document.getElementById("search").value = "";
+      document.getElementById("statusFilter").value = "";
+      document.getElementById("severityFilter").value = "";
+      document.getElementById("assigneeFilter").value = "";
+      applyFilters();
+    }
+
+    function updateStatus(id, newStatus) {
+      const ticket = tickets.find(t => t.id === id);
+      if (ticket) {
+        ticket.status = newStatus;
+        applyFilters();
+      }
+    }
+
+    // Initial render
+    updateAssigneeFilter();
+    applyFilters();
+  </script>
+</body>
+</html>
